@@ -91,6 +91,12 @@ cl::opt<bool> AllowStripped("allow-stripped",
                             cl::desc("allow processing of stripped binaries"),
                             cl::Hidden, cl::cat(BoltCategory));
 
+static cl::opt<bool>
+ForAobo("enable-aobo",
+  cl::desc("to support first version of aobo"),
+  cl::init(false),
+  cl::cat(BoltOutputCategory));
+
 static cl::opt<bool> ForceToDataRelocations(
     "force-data-relocations",
     cl::desc("force relocations to data sections to always be processed"),
@@ -4775,6 +4781,13 @@ void RewriteInstance::updateELFSymbolTable(
         NewSymbol.st_value = Function->getOutputAddress();
         NewSymbol.st_size = Function->getOutputSize();
         NewSymbol.st_shndx = Function->getCodeSection()->getIndex();
+        if (opts::ForAobo){
+          char orig[33], bolt[33];
+          sprintf(orig, "%lx", Function->getAddress());
+          sprintf(bolt, "%lx", Function->getOutputAddress());
+          outs()<<"@@@@ "<<*Function;
+          outs()<<" "<<orig<<" "<<bolt<<" "<<Function->getSize()<<" "<<Function->getOutputSize()<<"\n";
+        }
       } else if (Symbol.st_shndx < ELF::SHN_LORESERVE) {
         NewSymbol.st_shndx = getNewSectionIndex(Symbol.st_shndx);
       }
